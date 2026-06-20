@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Host Cầu Lông" />
+  <title>Host Cầu Lông - Fixed</title>
+  <style>
+    :root{
+      --bg:#f6f8fb;
+      --card:#ffffff;
+      --text:#172033;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --brand:#2563eb;
+      --brand2:#16a34a;
+      --danger:#dc2626;
+      --warn:#f59e0b;
+      --shadow:0 10px 25px rgba(15,23,42,.08);
+      --radius:18px;
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      background:linear-gradient(180deg,#eef5ff 0%,var(--bg) 230px);
+      color:var(--text);
+      padding:env(safe-area-inset-top) 12px calc(80px + env(safe-area-inset-bottom));
+    }
+    header{position:sticky;top:0;z-index:10;padding:10px 0 8px;background:linear-gradient(180deg,#eef5ff 80%,rgba(238,245,255,.82))}
+    h1{font-size:22px;margin:0 0 4px}
+    .sub{font-size:13px;color:var(--muted)}
+    .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+    .tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 6px;font-weight:700;color:#374151}
+    .tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+    .panel{display:none}.panel.active{display:block}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin:12px 0}
+    .row{display:flex;gap:8px;align-items:center}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    input,select,button,textarea{
+      font:inherit;border-radius:14px;border:1px solid var(--line);padding:12px;background:#fff;color:var(--text);min-height:44px
+    }
+    input,select,textarea{width:100%}
+    button{font-weight:800;cursor:pointer}
+    .primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+    .green{background:var(--brand2);color:#fff;border-color:var(--brand2)}
+    .danger{background:var(--danger);color:#fff;border-color:var(--danger)}
+    .ghost{background:#fff;color:var(--text)}
+    .small{font-size:12px;padding:8px 10px;min-height:36px;border-radius:999px}
+    .player{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+    .avatar{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;font-weight:900;color:#fff;background:#64748b}
+    .pname{font-weight:900}
+    .meta{font-size:12px;color:var(--muted);line-height:1.45}
+    .badge{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:800;background:#eef2ff;color:#3730a3}
+    .level-Yếu{background:#ecfdf5;color:#047857}.level-TB{background:#fef3c7;color:#92400e}.level-Khá{background:#eff6ff;color:#1d4ed8}.level-Cứng{background:#fce7f3;color:#be185d}
+    .status-wait{background:#f1f5f9;color:#475569}.status-playing{background:#dcfce7;color:#166534}.status-rest{background:#fee2e2;color:#991b1b}
+    .list{display:flex;flex-direction:column;gap:10px}
+    .court{border:2px dashed #cbd5e1;border-radius:20px;padding:12px;background:#fbfdff}
+    .court.busy{border-style:solid;border-color:#22c55e;background:#f0fdf4}
+    .court-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-weight:900}
+    .teams{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center}
+    .team{background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px;min-height:76px}
+    .vs{font-weight:900;color:var(--muted)}
+    .pillbox{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+    .pick{border:2px solid var(--line);background:#fff;border-radius:16px;padding:10px}
+    .pick.selected{border-color:var(--brand);background:#eff6ff}
+    .pick.disabled{opacity:.42}
+    .bottomBar{
+      position:fixed;left:0;right:0;bottom:0;z-index:20;
+      padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+      background:rgba(255,255,255,.92);backdrop-filter:blur(14px);border-top:1px solid var(--line)
+    }
+    .bottomBar .row button{flex:1}
+    .hint{font-size:13px;color:var(--muted);line-height:1.45}
+    .kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .kpi div{background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px;text-align:center}
+    .kpi b{display:block;font-size:18px}
+    .history{font-size:13px;border-top:1px solid var(--line);padding-top:8px;margin-top:8px;color:#374151}
+    .empty{text-align:center;color:var(--muted);padding:22px 8px}
+    @media(min-width:800px){body{max-width:920px;margin:auto}.tabs{grid-template-columns:repeat(4,160px)}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Host Cầu Lông</h1>
+  <div class="sub">Sắp sân đôi realtime, theo dõi số set, cặp gần nhất, trình độ và lịch sử ghép.</div>
+  <div class="tabs">
+    <button class="tab active" data-tab="dashboard">Sân</button>
+    <button class="tab" data-tab="players">Người</button>
+    <button class="tab" data-tab="pair">Ghép</button>
+    <button class="tab" data-tab="data">Dữ liệu</button>
+  </div>
+</header>
+
+<section id="dashboard" class="panel active">
+  <div class="kpi">
+    <div><b id="kpiTotal">0</b><span class="meta">Người</span></div>
+    <div><b id="kpiWaiting">0</b><span class="meta">Đang chờ</span></div>
+    <div><b id="kpiPlaying">0</b><span class="meta">Đang đánh</span></div>
+  </div>
+  <div id="courts"></div>
+  <div class="card">
+    <div class="row">
+      <input id="courtCount" type="number" min="1" max="8" placeholder="Số sân" />
+      <button class="primary" onclick="setCourtCount()">Lưu số sân</button>
+    </div>
+  </div>
+</section>
+
+<section id="players" class="panel">
+  <div class="card">
+    <div class="grid2">
+      <input id="nameInput" placeholder="Tên người chơi" />
+      <select id="levelInput">
+        <option>Yếu</option><option selected>TB</option><option>Khá</option><option>Cứng</option>
+      </select>
+    </div>
+    <button class="primary" style="width:100%;margin-top:10px" onclick="addPlayer()">Thêm người</button>
+    <p class="hint">Mẹo: nhập đủ 16 người trước khi đánh. Sau đó chỉ cần chạm để chọn ghép trận, không phải ghi giấy như thời tiền sử.</p>
+  </div>
+  <div id="playerList" class="list"></div>
+</section>
+
+<section id="pair" class="panel">
+  <div class="card">
+    <div class="row">
+      <select id="courtSelect"></select>
+      <button class="ghost" onclick="autoSuggest()">Gợi ý 4 người</button>
+    </div>
+    <div class="hint" style="margin-top:8px">Chọn đúng 4 người. App sẽ chia 2 đội theo thứ tự bạn bấm: người 1 + 2 vs người 3 + 4.</div>
+    <div id="selectedBox" class="pillbox"></div>
+  </div>
+  <div id="pickList" class="list"></div>
+</section>
+
+<section id="data" class="panel">
+  <div class="card">
+    <button class="ghost" style="width:100%" onclick="exportData()">Xuất dữ liệu JSON</button>
+    <textarea id="dataBox" rows="6" placeholder="Dữ liệu xuất/nhập sẽ nằm ở đây" style="margin-top:10px"></textarea>
+    <div class="grid2" style="margin-top:10px">
+      <button class="primary" onclick="importData()">Nhập lại</button>
+      <button class="danger" onclick="resetAll()">Xoá tất cả</button>
+    </div>
+  </div>
+  <div class="card">
+    <b>Lịch sử trận gần đây</b>
+    <div id="matchHistory"></div>
+  </div>
+</section>
+
+<div class="bottomBar">
+  <div class="row">
+    <button class="green" onclick="startMatch()">Bắt đầu trận</button>
+    <button class="ghost" onclick="clearSelection()">Bỏ chọn</button>
+  </div>
+</div>
+
+<script>
+const KEY = "badminton_host_v1";
+let state = {
+  courtCount: 2,
+  players: [],
+  courts: [],
+  selected: [],
+  matches: []
+};
+
+const levelScore = { "Yếu":1, "TB":2, "Khá":3, "Cứng":4 };
+
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function save(){ localStorage.setItem(KEY, JSON.stringify(state)); render(); }
+function load(){
+  const raw = localStorage.getItem(KEY);
+  if(raw){ try{ state = JSON.parse(raw); }catch(e){} }
+  ensureCourts();
+}
+function ensureCourts(){
+  state.courts = state.courts || [];
+  while(state.courts.length < state.courtCount) state.courts.push({id:uid(), active:null});
+  while(state.courts.length > state.courtCount) state.courts.pop();
+}
+function p(id){ return state.players.find(x=>x.id===id); }
+function initials(name){ return name.trim().split(/\s+/).slice(-2).map(w=>w[0]).join("").toUpperCase(); }
+function playedWith(player, otherId){
+  return (player.partners||[]).filter(id=>id===otherId).length;
+}
+function recentPartners(player){
+  return (player.lastPartners||[]).map(id=>p(id)?.name).filter(Boolean).join(", ") || "Chưa có";
+}
+function statusOf(id){
+  if(state.courts.some(c=>c.active && c.active.players.includes(id))) return "playing";
+  const player = p(id);
+  return player?.rest ? "rest" : "wait";
+}
+function statusText(s){ return s==="playing" ? "Đang đánh" : s==="rest" ? "Nghỉ" : "Chờ"; }
+
+document.querySelectorAll(".tab").forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(btn.dataset.tab).classList.add("active");
+    render();
+  }
+});
+
+function addPlayer(){
+  const name = document.getElementById("nameInput").value.trim();
+  const level = document.getElementById("levelInput").value;
+  if(!name) return alert("Nhập tên đã, đừng bắt app đoán như thầy bói.");
+  state.players.push({id:uid(), name, level, sets:0, matches:0, wins:0, rest:false, partners:[], lastPartners:[]});
+  document.getElementById("nameInput").value="";
+  save();
+}
+
+function removePlayer(id){
+  if(!confirm("Xoá người này?")) return;
+  state.players = state.players.filter(x=>x.id!==id);
+  state.selected = state.selected.filter(x=>x!==id);
+  save();
+}
+
+function toggleRest(id){
+  const player = p(id);
+  if(statusOf(id)==="playing") return alert("Người này đang đánh, không cho nghỉ giữa trận được. Sân cầu lông chứ không phải phim drama.");
+  player.rest = !player.rest;
+  save();
+}
+
+function togglePick(id){
+  if(statusOf(id)==="playing" || p(id).rest) return;
+  if(state.selected.includes(id)) state.selected = state.selected.filter(x=>x!==id);
+  else {
+    if(state.selected.length >= 4) return alert("Chỉ chọn 4 người cho đánh đôi.");
+    state.selected.push(id);
+  }
+  save();
+}
+
+function clearSelection(){ state.selected=[]; save(); }
+
+function setCourtCount(){
+  let n = parseInt(document.getElementById("courtCount").value || state.courtCount, 10);
+  n = Math.max(1, Math.min(8, n));
+  state.courtCount = n;
+  ensureCourts();
+  save();
+}
+
+function startMatch(){
+  if(state.selected.length !== 4) return alert("Cần chọn đúng 4 người.");
+  const courtIndex = parseInt(document.getElementById("courtSelect").value || "0", 10);
+  const court = state.courts[courtIndex];
+  if(!court) return;
+  if(court.active) return alert("Sân này đang có trận. Kết thúc trận trước đã.");
+  court.active = { id:uid(), players:[...state.selected], start:Date.now(), teamA:state.selected.slice(0,2), teamB:state.selected.slice(2,4) };
+  state.selected=[];
+  save();
+  showTab("dashboard");
+}
+
+function finishMatch(courtIndex, winner){
+  const court = state.courts[courtIndex];
+  if(!court.active) return;
+  const m = court.active;
+  const teamA = m.teamA, teamB = m.teamB;
+  const all = m.players;
+  all.forEach(id=>{
+    const pl = p(id); if(!pl) return;
+    pl.sets = (pl.sets||0) + 1;
+    pl.matches = (pl.matches||0) + 1;
+  });
+  if(winner==="A") teamA.forEach(id=>p(id).wins=(p(id).wins||0)+1);
+  if(winner==="B") teamB.forEach(id=>p(id).wins=(p(id).wins||0)+1);
+
+  [[teamA[0],teamA[1]],[teamB[0],teamB[1]]].forEach(([a,b])=>{
+    const pa=p(a), pb=p(b); if(!pa||!pb) return;
+    pa.partners = [...(pa.partners||[]), b];
+    pb.partners = [...(pb.partners||[]), a];
+    pa.lastPartners = [b, ...(pa.lastPartners||[]).filter(x=>x!==b)].slice(0,3);
+    pb.lastPartners = [a, ...(pb.lastPartners||[]).filter(x=>x!==a)].slice(0,3);
+  });
+
+  state.matches.unshift({
+    id:m.id, time:new Date().toLocaleString("vi-VN"),
+    teamA:[...teamA], teamB:[...teamB], winner
+  });
+  state.matches = state.matches.slice(0,50);
+  court.active = null;
+  save();
+}
+
+function autoSuggest(){
+  const available = state.players
+    .filter(x=>statusOf(x.id)==="wait" && !x.rest)
+    .sort((a,b)=>(a.sets||0)-(b.sets||0) || levelScore[a.level]-levelScore[b.level]);
+  state.selected = available.slice(0,4).map(x=>x.id);
+  save();
+}
+
+function showTab(name){
+  document.querySelector(`.tab[data-tab="${name}"]`)?.click();
+}
+
+function render(){
+  ensureCourts();
+  document.getElementById("courtCount").value = state.courtCount;
+  document.getElementById("kpiTotal").textContent = state.players.length;
+  document.getElementById("kpiWaiting").textContent = state.players.filter(x=>statusOf(x.id)==="wait").length;
+  document.getElementById("kpiPlaying").textContent = state.players.filter(x=>statusOf(x.id)==="playing").length;
+
+  renderCourts();
+  renderPlayers();
+  renderPair();
+  renderData();
+}
+
+function renderCourts(){
+  const root = document.getElementById("courts");
+  root.innerHTML = "";
+  state.courts.forEach((court,i)=>{
+    const div = document.createElement("div");
+    div.className = "card court " + (court.active ? "busy" : "");
+    if(!court.active){
+      div.innerHTML = `<div class="court-title"><span>Sân ${i+1}</span><span class="badge status-wait">Trống</span></div>
+      <div class="empty">Chưa có trận. Qua tab Ghép để xếp 4 nạn nhân may mắn.</div>`;
+    } else {
+      const a = court.active.teamA.map(id=>playerMini(id)).join("");
+      const b = court.active.teamB.map(id=>playerMini(id)).join("");
+      div.innerHTML = `<div class="court-title"><span>Sân ${i+1}</span><span class="badge status-playing">Đang đánh</span></div>
+      <div class="teams"><div class="team">${a}</div><div class="vs">VS</div><div class="team">${b}</div></div>
+      <div class="grid3" style="margin-top:10px">
+        <button class="green" onclick="finishMatch(${i}, 'A')">Đội trái thắng</button>
+        <button class="green" onclick="finishMatch(${i}, 'B')">Đội phải thắng</button>
+        <button class="ghost" onclick="finishMatch(${i}, 'N')">Kết thúc</button>
+      </div>`;
+    }
+    root.appendChild(div);
+  });
+}
+
+function playerMini(id){
+  const x = p(id);
+  if(!x) return "";
+  return `<div><b>${x.name}</b><br><span class="badge level-${x.level}">${x.level}</span> <span class="meta">${x.sets||0} set</span></div>`;
+}
+
+function renderPlayers(){
+  const root = document.getElementById("playerList");
+  if(!state.players.length){ root.innerHTML = `<div class="empty">Chưa có ai. Một team cầu lông rất yên bình vì không tồn tại.</div>`; return; }
+  root.innerHTML = state.players.map(x=>{
+    const st = statusOf(x.id);
+    return `<div class="card player">
+      <div class="avatar">${initials(x.name)}</div>
+      <div>
+        <div class="pname">${x.name}</div>
+        <div class="meta">
+          <span class="badge level-${x.level}">${x.level}</span>
+          <span class="badge status-${st}">${statusText(st)}</span>
+          ${x.sets||0} set · ${x.wins||0}/${x.matches||0} thắng
+        </div>
+        <div class="history">Cặp gần nhất: ${recentPartners(x)}</div>
+      </div>
+      <div>
+        <button class="small ghost" onclick="toggleRest('${x.id}')">${x.rest?'Cho đánh':'Nghỉ'}</button>
+        <button class="small danger" onclick="removePlayer('${x.id}')">Xoá</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function renderPair(){
+  const select = document.getElementById("courtSelect");
+  select.innerHTML = state.courts.map((c,i)=>`<option value="${i}" ${c.active?'disabled':''}>Sân ${i+1} ${c.active?'(bận)':'(trống)'}</option>`).join("");
+  document.getElementById("selectedBox").innerHTML = state.selected.map((id,idx)=>`<span class="badge">${idx+1}. ${p(id)?.name||""}</span>`).join("");
+  const root = document.getElementById("pickList");
+  const sorted = [...state.players].sort((a,b)=>{
+    const sa=statusOf(a.id), sb=statusOf(b.id);
+    return (sa==="wait"?0:1)-(sb==="wait"?0:1) || (a.sets||0)-(b.sets||0);
+  });
+  root.innerHTML = sorted.map(x=>{
+    const st = statusOf(x.id);
+    const disabled = st==="playing" || x.rest;
+    return `<button class="pick ${state.selected.includes(x.id)?'selected':''} ${disabled?'disabled':''}" onclick="togglePick('${x.id}')">
+      <div class="row">
+        <div class="avatar">${initials(x.name)}</div>
+        <div style="text-align:left;flex:1">
+          <div class="pname">${x.name}</div>
+          <div class="meta"><span class="badge level-${x.level}">${x.level}</span> <span class="badge status-${st}">${statusText(st)}</span> ${x.sets||0} set</div>
+          <div class="meta">Cặp gần nhất: ${recentPartners(x)}</div>
+        </div>
+      </div>
+    </button>`;
+  }).join("");
+}
+
+function renderData(){
+  const root = document.getElementById("matchHistory");
+  if(!state.matches.length){ root.innerHTML = `<div class="empty">Chưa có lịch sử trận.</div>`; return; }
+  root.innerHTML = state.matches.map(m=>{
+    const a=m.teamA.map(id=>p(id)?.name||"?").join(" + ");
+    const b=m.teamB.map(id=>p(id)?.name||"?").join(" + ");
+    const w=m.winner==="A"?"Đội trái":m.winner==="B"?"Đội phải":"Không ghi thắng";
+    return `<div class="history"><b>${m.time}</b><br>${a} vs ${b}<br><span class="badge">${w}</span></div>`;
+  }).join("");
+}
+
+function exportData(){
+  document.getElementById("dataBox").value = JSON.stringify(state,null,2);
+}
+
+function importData(){
+  try{
+    const incoming = JSON.parse(document.getElementById("dataBox").value);
+    if(!incoming.players || !Array.isArray(incoming.players)) throw new Error();
+    state = incoming;
+    ensureCourts();
+    save();
+    alert("Đã nhập dữ liệu.");
+  }catch(e){ alert("JSON lỗi. Máy không cứu được văn bản nát cú pháp."); }
+}
+
+function resetAll(){
+  if(!confirm("Xoá toàn bộ dữ liệu trên máy này?")) return;
+  localStorage.removeItem(KEY);
+  state = {courtCount:2, players:[], courts:[], selected:[], matches:[]};
+  ensureCourts();
+  save();
+}
+
+load();
+render();
+</script>
+</body>
+</html>
