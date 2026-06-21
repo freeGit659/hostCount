@@ -140,6 +140,7 @@ function courtHtml(c){
   const freeSlots = Math.max(0, 4 - ps.length);
   c.status = hasPlayers ? 'playing' : c.status === 'rest' ? 'rest' : 'empty';
   const status = hasPlayers ? `<span class="badge green">${freeSlots ? `Còn ${freeSlots} chỗ` : 'Đang chơi'}</span>` : c.status === 'rest' ? '<span class="badge gray">Nghỉ</span>' : '<span class="badge orange">Chờ xếp</span>';
+  const deleteBtn = `<button class="delete-court-btn" data-court-id="${c.id}" title="Xóa sân">×</button>`;
   const slots = [...ps.map(x => miniPlayerHtml(x, c.id)), ...Array.from({length: freeSlots}, () => emptySlotHtml(c.id))];
   const body = hasPlayers ? `
     <div class="mini-court compact">
@@ -151,7 +152,7 @@ function courtHtml(c){
     <div class="empty-court">${c.status === 'rest' ? 'Sân đang nghỉ' : 'Chưa có trận'}</div>
     ${c.status === 'rest' ? '' : `<div class="mini-court compact empty-court-grid"><div class="team-mini">${Array.from({length:2}, () => emptySlotHtml(c.id)).join('')}</div><div class="vs">VS</div><div class="team-mini">${Array.from({length:2}, () => emptySlotHtml(c.id)).join('')}</div></div><button class="ghost-btn suggest-btn" data-id="${c.id}">Gợi ý trận</button>`}`;
   return `<article class="court-card ${hasPlayers?'playing':c.status==='rest'?'rest':''}">
-    <div class="court-top"><div class="court-title">${c.name}</div>${status}</div>${body}</article>`;
+    <div class="court-top"><div class="court-title">${c.name}</div><div class="court-top-actions">${status}${deleteBtn}</div></div>${body}</article>`;
 }
 function miniPlayerHtml(x, courtId){
   return `<div class="mini-player court-person">
@@ -180,6 +181,7 @@ function bindDynamicCourtEvents(){
   $$('.suggest-btn').forEach(b => b.onclick = () => showSuggest(b.dataset.id));
   $$('.finish-btn').forEach(b => b.onclick = () => openFinish(b.dataset.id));
   $$('.remove-seat-btn').forEach(b => b.onclick = (e) => { e.stopPropagation(); removePlayerFromCourt(b.dataset.courtId, b.dataset.playerId); });
+  $$('.delete-court-btn').forEach(b => b.onclick = (e) => { e.stopPropagation(); deleteCourt(b.dataset.courtId); });
   $$('.add-to-court-slot').forEach(b => b.onclick = (e) => { e.stopPropagation(); openWaitingPickerForCourt(b.dataset.courtId); });
   $$('.wait-card').forEach(c => c.onclick = () => showWaitingActions(c.dataset.playerId));
 }
@@ -379,6 +381,17 @@ function addPlayerToCourt(courtId, playerId){
   x.status = 'playing';
   closeModals(); save(); render();
 }
+
+function deleteCourt(courtId){
+  const c = state.courts.find(x => x.id === courtId);
+  if (!c) return;
+  if (state.courts.length <= 1) { alert('Phải còn ít nhất 1 sân. Xóa hết rồi host điều phối bằng niềm tin à?'); return; }
+  if (!confirm(`Xóa ${c.name}? Người đang ở sân sẽ được đưa về danh sách chờ.`)) return;
+  c.players.forEach(id => { const x = player(id); if (x){ x.status = 'waiting'; x.waitSince = Date.now(); }});
+  state.courts = state.courts.filter(x => x.id !== courtId);
+  save(); render();
+}
+
 function removePlayerFromCourt(courtId, playerId){
   const c = state.courts.find(x => x.id === courtId);
   const x = player(playerId);

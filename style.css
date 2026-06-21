@@ -70,3 +70,25 @@
 .picker-left b{display:block;color:var(--text);font-size:14px;line-height:1.1;}
 .picker-left small{display:block;color:var(--muted);font-size:11px;margin-top:3px;white-space:nowrap;}
 .picker-player-btn > span:last-child{font-size:11px;color:var(--muted);font-weight:700;white-space:nowrap;}
+
+
+/* v5: thu gọn header tab Sân, tăng vùng danh sách sân, thêm nút xóa sân */
+#screen-courts{padding-top:calc(8px + env(safe-area-inset-top));}
+#screen-courts .topbar{margin-bottom:5px;min-height:34px;}
+#screen-courts .topbar > div:first-child{display:flex;align-items:baseline;gap:8px;min-width:0;}
+#screen-courts .topbar h1{font-size:22px;line-height:1;margin:0;}
+#screen-courts .topbar p{margin:0;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#screen-courts .top-actions{gap:6px;flex-shrink:0;}
+#screen-courts .icon-btn{width:34px;height:34px;border-radius:12px;font-size:16px;box-shadow:none;}
+#screen-courts .stats-grid{gap:6px;margin-bottom:7px;}
+#screen-courts .stat-card{padding:6px 4px;border-radius:12px;box-shadow:none;}
+#screen-courts .stat-card b{font-size:17px;line-height:1.05;}
+#screen-courts .stat-card span{font-size:9.5px;white-space:nowrap;}
+.court-page-split{grid-template-rows:50% 50%;gap:8px;}
+#screen-courts .court-panel{padding:7px;}
+#screen-courts .section-head h2{font-size:14px;}
+#screen-courts .small-btn,#screen-courts .select{padding:7px 8px;font-size:11px;border-radius:10px;}
+.courts-scroll,.waiting-scroll{max-height:calc(100% - 31px);}
+.court-top-actions{display:flex;align-items:center;gap:6px;}
+.delete-court-btn{width:24px;height:24px;border-radius:9px;background:#fee2e2;color:var(--red);font-weight:900;font-size:16px;line-height:24px;}
+[data-theme="dark"] .delete-court-btn{background:rgba(220,38,38,.18);}
