@@ -79,7 +79,9 @@
 #screen-courts .topbar h1{font-size:22px;line-height:1;margin:0;}
 #screen-courts .topbar p{margin:0;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 #screen-courts .top-actions{gap:6px;flex-shrink:0;}
-#screen-courts .icon-btn{width:34px;height:34px;border-radius:12px;font-size:16px;box-shadow:none;}
+#screen-courts .icon-btn{height:34px;border-radius:12px;font-size:16px;box-shadow:none;}
+#resetSessionBtn {width: 110px;color: white;background: #ef9f9f;}
+#themeBtn {width:34px}
 #screen-courts .stats-grid{gap:6px;margin-bottom:7px;}
 #screen-courts .stat-card{padding:6px 4px;border-radius:12px;box-shadow:none;}
 #screen-courts .stat-card b{font-size:17px;line-height:1.05;}
