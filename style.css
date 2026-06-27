@@ -94,3 +94,19 @@
 .court-top-actions{display:flex;align-items:center;gap:6px;}
 .delete-court-btn{width:24px;height:24px;border-radius:9px;background:#fee2e2;color:var(--red);font-weight:900;font-size:16px;line-height:24px;}
 [data-theme="dark"] .delete-court-btn{background:rgba(220,38,38,.18);}
+
+/* v6: sửa thông tin người chơi + màu nền avatar riêng */
+.avatar{background:var(--avatar-bg,#fee2b3)}
+.avatar.big{width:72px;height:72px;font-size:38px;border-width:3px;margin:auto;}
+.field-label{display:block;font-size:13px;font-weight:800;color:var(--muted);margin:2px 0 8px;}
+.color-picker{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:10px;}
+.color-dot{width:30px;height:30px;border-radius:50%;border:2px solid transparent;box-shadow:inset 0 0 0 1px rgba(15,23,42,.12);}
+.color-dot.active{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.16), inset 0 0 0 1px rgba(15,23,42,.12);}
+.color-auto{height:30px;border-radius:999px;background:var(--card);border:1px solid var(--line);color:var(--text);font-size:12px;font-weight:800;padding:0 10px;}
+.color-auto.active{background:var(--blue);color:white;border-color:var(--blue);}
+.edit-avatar-preview{display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:12px;margin:8px 0 2px;}
+.edit-avatar-preview .avatar.big{margin:0;flex:0 0 auto;}
+.edit-avatar-preview b{display:block;font-size:18px;}
+.edit-avatar-preview span{display:block;color:var(--muted);font-size:12px;margin-top:3px;}
+#resetSessionBtn{background:#dc2626!important;color:#fff!important;width:auto!important;min-width:116px;padding:0 12px;font-size:12px;font-weight:900;}
+[data-theme="dark"] #resetSessionBtn{background:#ef4444!important;color:#fff!important;}

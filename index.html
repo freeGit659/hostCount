@@ -17,7 +17,7 @@
         </div>
         <div class="top-actions">
           <button class="icon-btn" id="themeBtn" title="Đổi giao diện">🌙</button>
-          <button class="icon-btn" id="resetSessionBtn" title="Tạo buổi mới">Tạo buổi mới</button>
+          <button class="icon-btn" id="resetSessionBtn" title="Tạo mới sân">Tạo mới sân</button>
         </div>
       </header>
 
@@ -133,6 +133,11 @@
           <option value="2">Trung bình yếu</option>
           <option value="3">Trung bình</option>
         </select>
+        <div>
+          <label class="field-label">Màu nền avatar</label>
+          <input type="hidden" id="playerAvatarColorInput" value="" />
+          <div id="addAvatarColorPalette"></div>
+        </div>
         <label class="check-row"><input type="checkbox" id="playerRegularInput" /> Khách quen</label>
         <button class="primary-btn" type="submit">+ Thêm</button>
       </form>

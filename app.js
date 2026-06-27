@@ -9,6 +9,12 @@ const levelMap = {
   3: { label: 'Trung bình', stars: '★★★', icon: '🥇' }
 };
 
+const AVATAR_COLORS = [
+  '#FDE68A', '#BFDBFE', '#BBF7D0', '#FBCFE8', '#DDD6FE',
+  '#FED7AA', '#A7F3D0', '#FECACA', '#BAE6FD', '#E9D5FF',
+  '#C7D2FE', '#FEF3C7', '#CCFBF1', '#F5D0FE', '#E2E8F0'
+];
+
 const seed = {
   theme: 'light',
   activeTab: 'courts',
@@ -35,7 +41,29 @@ seed.players[0].status = 'playing';
 seed.players[2].status = 'playing';
 
 function p(name, gender, level, regular, sets, status, waitMin){
-  return { id: uid(), name, gender, level, regular, sets, status, waitSince: Date.now() - waitMin * 60000, partners: [], opponents: [] };
+  return { id: uid(), name, gender, level, regular, sets, status, waitSince: Date.now() - waitMin * 60000, partners: [], opponents: [], avatarColor: '' };
+}
+function usedAvatarColors(exceptId){
+  return new Set((state?.players || []).filter(x => x.id !== exceptId).map(x => x.avatarColor).filter(Boolean));
+}
+function pickUniqueAvatarColor(exceptId){
+  const used = usedAvatarColors(exceptId);
+  const free = AVATAR_COLORS.filter(c => !used.has(c));
+  return (free.length ? free : AVATAR_COLORS)[Math.floor(Math.random() * (free.length ? free.length : AVATAR_COLORS.length))];
+}
+function ensurePlayerDefaults(){
+  if (!state || !Array.isArray(state.players)) return;
+  const used = new Set();
+  state.players.forEach(x => {
+    if (!x.id) x.id = uid();
+    if (!x.partners) x.partners = [];
+    if (!x.opponents) x.opponents = [];
+    if (!x.avatarColor || used.has(x.avatarColor)) {
+      const free = AVATAR_COLORS.filter(c => !used.has(c));
+      x.avatarColor = (free.length ? free : AVATAR_COLORS)[Math.floor(Math.random() * (free.length ? free.length : AVATAR_COLORS.length))];
+    }
+    used.add(x.avatarColor);
+  });
 }
 function uid(){ return Math.random().toString(36).slice(2,10); }
 function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
@@ -45,11 +73,13 @@ function load(){
   try { return JSON.parse(raw); } catch { return structuredClone(seed); }
 }
 let state = load();
+ensurePlayerDefaults();
 state.playerSelectMode = !!state.playerSelectMode;
 state.selectedPlayers = Array.isArray(state.selectedPlayers) ? state.selectedPlayers : [];
 
 function init(){
   document.documentElement.dataset.theme = state.theme || 'light';
+  renderAddColorPalette();
   $('#todayText').textContent = `Hôm nay · ${new Date().toLocaleDateString('vi-VN')}`;
   bindEvents();
   render();
@@ -77,8 +107,10 @@ function bindEvents(){
     if (state.players.some(x => x.name.toLowerCase() === name.toLowerCase())) {
       alert('Tên này đã có rồi. Một sân có 3 ông Nam là đủ hỗn loạn rồi.'); return;
     }
-    state.players.push({ id: uid(), name, gender: $('#playerGenderInput').value, level: +$('#playerLevelInput').value, regular: $('#playerRegularInput').checked, sets:0, status:'waiting', waitSince:Date.now(), partners:[], opponents:[] });
-    e.target.reset(); closeModals(); save(); render();
+    const chosenColor = $('#playerAvatarColorInput').value;
+    if (chosenColor && usedAvatarColors().has(chosenColor)) { alert('Màu avatar này đã có người dùng rồi. Trùng màu là bắt đầu loạn như chia sân bằng trí nhớ.'); return; }
+    state.players.push({ id: uid(), name, gender: $('#playerGenderInput').value, level: +$('#playerLevelInput').value, regular: $('#playerRegularInput').checked, sets:0, status:'waiting', waitSince:Date.now(), partners:[], opponents:[], avatarColor: chosenColor || pickUniqueAvatarColor() });
+    e.target.reset(); $('#playerAvatarColorInput').value = ''; renderAddColorPalette(); closeModals(); save(); render();
   };
   $('#addCourtForm').onsubmit = e => {
     e.preventDefault();
@@ -113,7 +145,29 @@ function waitingPlayers(){ return state.players.filter(x => x.status === 'waitin
 function playingPlayers(){ return state.players.filter(x => x.status === 'playing'); }
 function waitMinutes(x){ return Math.max(0, Math.floor((Date.now() - (x.waitSince || Date.now())) / 60000)); }
 function stars(level){ return levelMap[level]?.stars || '☆☆☆'; }
-function avatar(x){ return x.gender === 'Nữ' ? '👩' : '👨'; }
+function avatarIcon(x){ return x.gender === 'Nữ' ? '👩' : '👨'; }
+function avatarHtml(x, extraClass=''){
+  return `<div class="avatar ${extraClass}" style="background:${x.avatarColor || '#fee2b3'}">${avatarIcon(x)}</div>`;
+}
+function colorPickerHtml(selectedColor='', inputId='playerAvatarColorInput', mode='add'){
+  const autoActive = !selectedColor ? 'active' : '';
+  return `<div class="color-picker" data-color-target="${inputId}"><button type="button" class="color-auto ${autoActive}" data-color="">Tự động</button>${AVATAR_COLORS.map(c => `<button type="button" class="color-dot ${selectedColor===c?'active':''}" data-color="${c}" style="background:${c}" title="${c}"></button>`).join('')}</div>`;
+}
+function bindColorPicker(scope=document){
+  scope.querySelectorAll('.color-picker button').forEach(btn => btn.onclick = () => {
+    const wrap = btn.closest('.color-picker');
+    const input = document.getElementById(wrap.dataset.colorTarget);
+    if (input) input.value = btn.dataset.color || '';
+    wrap.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+    btn.classList.add('active');
+  });
+}
+function renderAddColorPalette(){
+  const box = $('#addAvatarColorPalette');
+  if (!box) return;
+  box.innerHTML = colorPickerHtml($('#playerAvatarColorInput')?.value || '', 'playerAvatarColorInput', 'add');
+  bindColorPicker(box);
+}
 
 function renderCourts(){
   $('#statPresent').textContent = presentPlayers().length;
@@ -157,7 +211,7 @@ function courtHtml(c){
 function miniPlayerHtml(x, courtId){
   return `<div class="mini-player court-person">
     <button class="remove-seat-btn" data-court-id="${courtId}" data-player-id="${x.id}" title="Xóa khỏi sân">×</button>
-    <div class="avatar tiny">${avatar(x)}</div>
+    ${avatarHtml(x,'tiny')}
     <div class="mini-name">${x.name}</div>
     <div class="stars">${stars(x.level)}</div>
   </div>`;
@@ -172,7 +226,7 @@ function emptySlotHtml(courtId){
 function waitingHtml(x){
   const hot = waitMinutes(x) >= 15;
   return `<article class="wait-card ${hot?'priority':''}" data-player-id="${x.id}">
-    <div class="avatar">${avatar(x)}</div>
+    ${avatarHtml(x)}
     <div><div class="player-name">${x.name}</div><div class="stars">${stars(x.level)}</div><div class="sub">${levelMap[x.level].label}${x.regular?' · Khách quen':''}</div></div>
     <div class="metric"><b>${x.sets} set</b><span class="${hot?'hot':''}">Chờ ${waitMinutes(x)} phút</span></div>
   </article>`;
@@ -227,7 +281,7 @@ function suggestHtml(s){
   <div class="balance"><b>${balance}%</b><div class="sub">✓ Trình độ cân bằng<br>✓ Ít set hơn được ưu tiên<br>✓ Hạn chế đánh cặp gần đây</div></div>`;
 }
 function suggestPlayerHtml(x){
-  return `<div class="suggest-player"><div class="avatar">${avatar(x)}</div><div><div class="player-name">${x.name}</div><div class="stars">${stars(x.level)}</div></div><div class="metric"><b>${x.sets} set</b><span>Chờ ${waitMinutes(x)} phút</span></div></div>`;
+  return `<div class="suggest-player">${avatarHtml(x)}<div><div class="player-name">${x.name}</div><div class="stars">${stars(x.level)}</div></div><div class="metric"><b>${x.sets} set</b><span>Chờ ${waitMinutes(x)} phút</span></div></div>`;
 }
 function createSuggestedMatch(){
   if (!state.suggested) return;
@@ -277,7 +331,7 @@ function playerCardHtml(x){
   const badge = x.status === 'absent' ? '<span class="badge gray">Vắng</span>' : x.status === 'playing' ? '<span class="badge green">Đang chơi</span>' : '<span class="badge green">Có mặt</span>';
   const checked = state.selectedPlayers.includes(x.id);
   const selectBtn = state.playerSelectMode ? `<button class="player-select ${checked?'checked':''}" data-player-id="${x.id}">${checked?'✓':''}</button>` : '';
-  return `<article class="player-card ${state.playerSelectMode?'selecting':''}" data-player-id="${x.id}">${selectBtn}<div class="avatar">${avatar(x)}</div><div><div class="player-name">${x.name}</div><div class="stars">${stars(x.level)}</div><div class="sub">${levelMap[x.level].label} · ${x.sets} set hôm nay${x.regular?' · Khách quen':''}</div></div>${badge}<button class="edit-player-btn" data-player-id="${x.id}">Sửa</button></article>`;
+  return `<article class="player-card ${state.playerSelectMode?'selecting':''}" data-player-id="${x.id}">${selectBtn}${avatarHtml(x)}<div><div class="player-name">${x.name}</div><div class="stars">${stars(x.level)}</div><div class="sub">${levelMap[x.level].label} · ${x.sets} set hôm nay${x.regular?' · Khách quen':''}</div></div>${badge}<button class="edit-player-btn" data-player-id="${x.id}">Sửa</button></article>`;
 }
 function togglePlayerSelectMode(){
   state.playerSelectMode = !state.playerSelectMode;
@@ -317,16 +371,63 @@ function bulkSetStatus(status){
 }
 function showPlayerEdit(id){
   const x = player(id); if (!x) return;
-  $('#playerDetail').innerHTML = playerDetailHtml(x) + `
-    <div class="quick-actions">
-      <button class="present-btn" id="setPresentBtn">Có mặt</button>
-      <button class="away-btn" id="setAbsentBtn">Vắng</button>
-      <button class="danger-btn" id="deletePlayerBtn">Xóa người chơi</button>
-    </div>`;
+  $('#playerDetail').innerHTML = editPlayerFormHtml(x);
   openModal('playerModal');
+  bindColorPicker($('#playerDetail'));
+
+  $('#editPlayerForm').onsubmit = e => {
+    e.preventDefault();
+    const name = $('#editPlayerName').value.trim();
+    if (!name) return;
+    if (state.players.some(p => p.id !== x.id && p.name.toLowerCase() === name.toLowerCase())) {
+      alert('Tên này đã tồn tại rồi. Trùng tên đã mệt, trùng luôn dữ liệu thì khỏi cứu.'); return;
+    }
+    const chosenColor = $('#editPlayerAvatarColor').value;
+    const finalColor = chosenColor || pickUniqueAvatarColor(x.id);
+    if (usedAvatarColors(x.id).has(finalColor)) {
+      alert('Màu avatar này đã có người dùng rồi. Chọn màu khác cho dễ nhìn.'); return;
+    }
+    x.name = name;
+    x.gender = $('#editPlayerGender').value;
+    x.level = +$('#editPlayerLevel').value;
+    x.regular = $('#editPlayerRegular').checked;
+    x.avatarColor = finalColor;
+    save(); closeModals(); render();
+  };
   $('#setPresentBtn').onclick = () => { x.status = 'waiting'; x.waitSince = Date.now(); save(); closeModals(); render(); };
   $('#setAbsentBtn').onclick = () => { x.status = 'absent'; removeFromCourts(x.id); save(); closeModals(); render(); };
-  $('#deletePlayerBtn').onclick = () => { if(confirm(`Xóa ${x.name}?`)){ state.players = state.players.filter(p=>p.id!==x.id); removeFromCourts(x.id); save(); closeModals(); render(); }};
+  $('#deletePlayerBtn').onclick = () => { if(confirm(`Xóa ${x.name}?`)){ removeFromCourts(x.id); state.players = state.players.filter(p=>p.id!==x.id); save(); closeModals(); render(); }};
+}
+function editPlayerFormHtml(x){
+  return `<form id="editPlayerForm" class="form">
+    <div class="edit-avatar-preview">${avatarHtml(x,'big')}<div><b>${x.name}</b><span>Sửa thông tin người chơi</span></div></div>
+    <input id="editPlayerName" value="${escapeHtml(x.name)}" placeholder="Tên người chơi" required />
+    <select id="editPlayerGender">
+      <option value="Nam" ${x.gender==='Nam'?'selected':''}>Nam</option>
+      <option value="Nữ" ${x.gender==='Nữ'?'selected':''}>Nữ</option>
+    </select>
+    <select id="editPlayerLevel">
+      <option value="0" ${x.level===0?'selected':''}>Newbie</option>
+      <option value="1" ${x.level===1?'selected':''}>Yếu</option>
+      <option value="2" ${x.level===2?'selected':''}>Trung bình yếu</option>
+      <option value="3" ${x.level===3?'selected':''}>Trung bình</option>
+    </select>
+    <div>
+      <label class="field-label">Màu nền avatar</label>
+      <input type="hidden" id="editPlayerAvatarColor" value="${x.avatarColor || ''}" />
+      ${colorPickerHtml(x.avatarColor || '', 'editPlayerAvatarColor', 'edit')}
+    </div>
+    <label class="check-row"><input type="checkbox" id="editPlayerRegular" ${x.regular?'checked':''} /> Khách quen</label>
+    <button class="primary-btn" type="submit">Lưu thay đổi</button>
+  </form>
+  <div class="quick-actions">
+    <button class="present-btn" id="setPresentBtn">Có mặt</button>
+    <button class="away-btn" id="setAbsentBtn">Vắng</button>
+    <button class="danger-btn" id="deletePlayerBtn">Xóa người chơi</button>
+  </div>`;
+}
+function escapeHtml(str){
+  return String(str).replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[ch]));
 }
 function showPlayerDetail(id){
   const x = player(id); if (!x) return;
@@ -338,7 +439,7 @@ function showPlayerDetail(id){
   $('#deletePlayerBtn').onclick = () => { if(confirm(`Xóa ${x.name}?`)){ state.players = state.players.filter(p=>p.id!==x.id); removeFromCourts(x.id); closeModals(); save(); render(); }};
 }
 function playerDetailHtml(x){
-  return `<div style="text-align:center;margin:10px 0"><div class="avatar" style="width:70px;height:70px;font-size:38px">${avatar(x)}</div><h2 style="margin:8px 0 0">${x.name}</h2><div class="stars" style="font-size:18px">${stars(x.level)}</div></div>
+  return `<div style="text-align:center;margin:10px 0">${avatarHtml(x,'big')}<h2 style="margin:8px 0 0">${x.name}</h2><div class="stars" style="font-size:18px">${stars(x.level)}</div></div>
   <div class="detail-grid">
     <div class="detail-row"><span>Trạng thái</span><b>${x.status === 'playing' ? 'Đang chơi' : x.status === 'absent' ? 'Vắng' : 'Có mặt'}</b></div>
     <div class="detail-row"><span>Set hôm nay</span><b>${x.sets}</b></div>
@@ -366,7 +467,7 @@ function renderCourtChoicesForPlayer(playerId){
 function openWaitingPickerForCourt(courtId){
   const court = state.courts.find(c=>c.id===courtId); if (!court) return;
   const list = waitingPlayers();
-  $('#playerDetail').innerHTML = `<h2>Thêm vào ${court.name}</h2><p class="muted">Chọn người đang chờ để lấp chỗ trống.</p><div class="court-choice-list player-picker-list">${list.length ? list.map(x => `<button class="court-choice-btn picker-player-btn" data-player-id="${x.id}"><span class="picker-left"><span class="avatar">${avatar(x)}</span><span><b>${x.name}</b><small>${levelMap[x.level].label} · ${stars(x.level)}</small></span></span><span>${x.sets} set · chờ ${waitMinutes(x)} phút</span></button>`).join('') : '<div class="empty-card">Không có ai đang chờ.</div>'}</div>`;
+  $('#playerDetail').innerHTML = `<h2>Thêm vào ${court.name}</h2><p class="muted">Chọn người đang chờ để lấp chỗ trống.</p><div class="court-choice-list player-picker-list">${list.length ? list.map(x => `<button class="court-choice-btn picker-player-btn" data-player-id="${x.id}"><span class="picker-left">${avatarHtml(x)}<span><b>${x.name}</b><small>${levelMap[x.level].label} · ${stars(x.level)}</small></span></span><span>${x.sets} set · chờ ${waitMinutes(x)} phút</span></button>`).join('') : '<div class="empty-card">Không có ai đang chờ.</div>'}</div>`;
   openModal('playerModal');
   $$('#playerDetail .court-choice-btn').forEach(b => b.onclick = () => addPlayerToCourt(courtId, b.dataset.playerId));
 }
